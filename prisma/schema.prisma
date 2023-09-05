@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String?
+  firstName   String
+  lastName    String
+  address     String
+  phoneNumber String?
+  role        USER_ROLE @default(VENDOR)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  password    Password?
+  vendor      Vendor?
+
+  @@map("user")
+}
+
+model Password {
+  id           Int    @id @default(autoincrement())
+  user         User   @relation(fields: [userId], references: [id])
+  userId       Int    @unique
+  passwordHash String
+
+  @@map("password")
+}
+
+model Vendor {
+  id               Int      @id @default(autoincrement())
+  email            String   @unique
+  businessName     String
+  address          String
+  phoneNumber      String
+  otherPhoneNumber String?
+  category         String
+  approved         Boolean  @default(false)
+  user             User     @relation(fields: [userId], references: [id])
+  userId           Int      @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("vendor")
+}
+
+model invite {
+  id          Int      @id @default(autoincrement())
+  email       String
+  inviteToken String
+  expires     String
+  valid       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("invite")
+}
+
+enum USER_ROLE {
+  AMDIN
+  VENDOR
+}
