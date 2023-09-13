@@ -64,6 +64,32 @@ model invite {
   @@map("invite")
 }
 
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String
+  listings Listings []
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("category")
+}
+
+model Listings {
+  id Int @id @default(autoincrement())
+  jobName String
+  description String
+  attachment String
+  categoryId Int
+  category Category @relation(fields: [categoryId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("listings")
+  @@unique([categoryId])
+}
+
+
 enum USER_ROLE {
   AMDIN
   VENDOR
