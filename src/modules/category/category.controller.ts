@@ -18,6 +18,11 @@ export class CategoryController {
         await this.category.findAllCategories();
     }
 
+    @Get(':id')
+    async findOneCategory(@Param('id') id: string){
+        await this.category.findOneCategory(+id)
+    }
+
     @Delete(':id')
     async deleteCategory(@Param('id') id: string, @Res() res: Response) {
         await this.category.deleteCategory(+id);

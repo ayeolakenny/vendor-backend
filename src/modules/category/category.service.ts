@@ -20,6 +20,10 @@ export class CategoryService {
         });
     }
 
+    async findOneCategory(id: number){
+        await this.prisma.category.findUnique({where: {id}})
+    }
+
     async deleteCategory(id: number){
         await this.prisma.category.delete({where: {id}});
     }
