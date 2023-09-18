@@ -3,7 +3,11 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { RegisterVendorDto, SendInviteLinkDto } from './dto/vendor.request.';
+import {
+  RegisterVendorDto,
+  SendInviteLinkDto,
+  VendorIdDto,
+} from './dto/vendor.request.';
 import { PrismaService } from 'src/prisma.service';
 import * as argon2 from 'argon2';
 import { generateToken } from 'src/utils/generateToken';
@@ -19,32 +23,35 @@ export class VendorService {
   ) {}
 
   async sendVendorInviteLink(input: SendInviteLinkDto) {
-    const { vendorEmail } = input;
+    const { email } = input;
 
-    await this.__checkIfVendorExists(vendorEmail);
+    await this.__checkIfVendorExists(email);
 
     const inviteToken = generateToken();
 
     await this.prisma.invite.create({
       data: {
-        email: vendorEmail,
+        email: email,
         expires: `${daysToUnix(2)}`, // link expires in 2 days
         inviteToken,
       },
     });
 
-    await this.mailService.sendMail({
-      to: vendorEmail,
-      subject: MAIL_SUBJECT.VENDOR_INVITATION,
-      html: MAIL_MESSAGE.VENDOR_INVITATION(
-        `${process.env.CLIENT_DEPLOYED_URL}/registration?token=${inviteToken}`,
-      ),
-    });
+    // await this.mailService.sendMail({
+    //   to: email,
+    //   subject: MAIL_SUBJECT.VENDOR_INVITATION,
+    //   html: MAIL_MESSAGE.VENDOR_INVITATION(
+    //     `${process.env.CLIENT_DEPLOYED_URL}/registration?token=${inviteToken}`,
+    //   ),
+    // });
 
     return true;
   }
 
-  async registerVendor(input: RegisterVendorDto) {
+  async registerVendor(
+    input: RegisterVendorDto,
+    uploads: Express.Multer.File[],
+  ) {
     const {
       inviteToken,
       businessEmail,
@@ -65,7 +72,7 @@ export class VendorService {
 
     const passwordHash = await argon2.hash(lastName);
 
-    await this.prisma.user.create({
+    const newUser = await this.prisma.user.create({
       data: {
         address,
         firstName,
@@ -88,15 +95,46 @@ export class VendorService {
           },
         },
       },
+      include: {
+        vendor: true,
+      },
     });
 
-    await this.__deleteVendorInvite(businessEmail, inviteToken);
+    if (uploads && newUser) {
+      const vendorUploads = [];
+
+      uploads.forEach(async (upload) => {
+        vendorUploads.push({
+          name: upload.originalname,
+          size: upload.size,
+          type: upload.mimetype,
+          bytes: upload.buffer,
+          vendorId: newUser.vendor.id,
+        });
+      });
+
+      await this.prisma.upload.createMany({
+        data: vendorUploads,
+      });
+    }
+
+    // await this.__deleteVendorInvite(businessEmail, inviteToken);
 
     return true;
   }
 
+  async approveVendor(input: VendorIdDto) {
+    const { id } = input;
+    return await this.prisma.vendor.update({
+      where: { id },
+      data: { approved: true },
+    });
+  }
+
   async __checkIfVendorExists(email: string) {
-    const vendor = await this.prisma.vendor.findUnique({ where: { email } });
+    const vendor = await this.prisma.vendor.findUnique({
+      where: { email },
+    });
     if (vendor) throw new BadRequestException('Vendor already exists.');
   }
 
@@ -111,11 +149,15 @@ export class VendorService {
       throw new BadRequestException('Invalid invite');
     }
 
-    if (!invite.valid) {
+    if (unixToDaysLeft(Number(invite.expires)) < 1) {
+      await this.prisma.invite.update({
+        where: { id: invite.id },
+        data: { valid: false },
+      });
       throw new BadRequestException('Invalid invite');
     }
 
-    if (unixToDaysLeft(Number(invite.expires)) < 1) {
+    if (!invite.valid) {
       throw new BadRequestException('Invalid invite');
     }
   }

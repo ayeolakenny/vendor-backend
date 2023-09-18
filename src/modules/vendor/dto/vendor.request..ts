@@ -1,6 +1,7 @@
 import {
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsPhoneNumber,
   IsString,
@@ -9,7 +10,7 @@ import {
 export class SendInviteLinkDto {
   @IsNotEmpty()
   @IsEmail()
-  readonly vendorEmail: string;
+  readonly email: string;
 }
 
 export class RegisterVendorDto {
@@ -63,4 +64,10 @@ export class RegisterVendorDto {
   @IsNotEmpty()
   @IsString()
   readonly inviteToken: string;
+}
+
+export class VendorIdDto {
+  @IsNotEmpty()
+  @IsNumber()
+  readonly id: number;
 }

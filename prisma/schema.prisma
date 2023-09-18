@@ -17,13 +17,11 @@ model User {
   lastName    String
   address     String
   phoneNumber String?
-  role        USER_ROLE @default(VENDOR)
+  role        UserRole  @default(VENDOR)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   password    Password?
   vendor      Vendor?
-
-  @@map("user")
 }
 
 model Password {
@@ -31,8 +29,6 @@ model Password {
   user         User   @relation(fields: [userId], references: [id])
   userId       Int    @unique
   passwordHash String
-
-  @@map("password")
 }
 
 model Vendor {
@@ -48,11 +44,10 @@ model Vendor {
   userId           Int      @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-
-  @@map("vendor")
+  upload           Upload[]
 }
 
-model invite {
+model Invite {
   id          Int      @id @default(autoincrement())
   email       String
   inviteToken String
@@ -60,11 +55,20 @@ model invite {
   valid       Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  @@map("invite")
 }
 
-enum USER_ROLE {
-  AMDIN
+model Upload {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  size      Int
+  type      String
+  bytes     Bytes?
+  createdAt DateTime @default(now())
+  vendor    Vendor?  @relation(fields: [vendorId], references: [id])
+  vendorId  Int?
+}
+
+enum UserRole {
+  ADMIN
   VENDOR
 }
