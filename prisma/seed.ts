@@ -4,6 +4,25 @@ import * as argon2 from 'argon2';
 const prisma = new PrismaClient();
 
 async function main() {
+  const categoriesData = [
+    { name: 'Electrical' },
+    { name: 'Painting' },
+    { name: 'Wood Works/Furniture' },
+    { name: 'Iron Works' },
+    { name: 'AC' },
+    { name: 'Masonry' },
+    { name: 'POP' },
+    { name: 'Food & Nutrition' },
+    { name: 'Landscape' },
+    { name: 'Supplies - Consumables' },
+    { name: 'Supplies - Equipment' },
+    { name: 'Technical' },
+    { name: 'Other' },
+  ];
+
+  await prisma.user.deleteMany({ where: { role: UserRole.ADMIN } });
+  await prisma.category.deleteMany();
+
   const admin = await prisma.user.create({
     data: {
       email: 'admin@zoracom.com',
@@ -19,6 +38,10 @@ async function main() {
     },
   });
   console.log(admin);
+  const categories = await prisma.category.createMany({
+    data: categoriesData,
+  });
+  console.log(categories);
 }
 main()
   .then(async () => {

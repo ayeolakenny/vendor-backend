@@ -32,19 +32,21 @@ model Password {
 }
 
 model Vendor {
-  id               Int      @id @default(autoincrement())
-  email            String   @unique
+  id               Int             @id @default(autoincrement())
+  email            String          @unique
   businessName     String
   address          String
   phoneNumber      String
   otherPhoneNumber String?
   category         String
-  approved         Boolean  @default(false)
-  user             User     @relation(fields: [userId], references: [id])
-  userId           Int      @unique
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  status           VendorStatus    @default(PENDING)
+  user             User            @relation(fields: [userId], references: [id])
+  userId           Int             @unique
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
   upload           Upload[]
+  listings         Listing[]
+  listingReport    ListingReport[]
 }
 
 model Invite {
@@ -58,17 +60,89 @@ model Invite {
 }
 
 model Upload {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  size      Int
-  type      String
-  bytes     Bytes?
-  createdAt DateTime @default(now())
-  vendor    Vendor?  @relation(fields: [vendorId], references: [id])
-  vendorId  Int?
+  id              Int            @id @default(autoincrement())
+  name            String
+  size            Int
+  type            String
+  bytes           Bytes?
+  createdAt       DateTime       @default(now())
+  vendor          Vendor?        @relation(fields: [vendorId], references: [id])
+  vendorId        Int?
+  listing         Listing?       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId       Int?
+  application     Application?   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId   Int?
+  listingReport   ListingReport? @relation(fields: [listingReportId], references: [id], onDelete: Cascade)
+  listingReportId Int?
+}
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  name         String
+  listing      Listing[]
+  applications Application[]
+}
+
+model Listing {
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String
+  status       Status        @default(PENDING)
+  category     Category      @relation(fields: [categoryId], references: [id])
+  categoryId   Int
+  upload       Upload[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  vendors      Vendor[]
+  applications Application[]
+}
+
+model Application {
+  id             Int             @id @default(autoincrement())
+  comment        String
+  listing        Listing         @relation(fields: [listingId], references: [id])
+  listingId      Int
+  vendor         Category        @relation(fields: [vendorId], references: [id])
+  vendorId       Int
+  upload         Upload[]
+  status         Status          @default(PENDING)
+  listingReports ListingReport[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model ListingReport {
+  id            Int          @id @default(autoincrement())
+  comment       String
+  vendor        Vendor?      @relation(fields: [vendorId], references: [id])
+  vendorId      Int?
+  application   Application? @relation(fields: [applicationId], references: [id])
+  applicationId Int?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  upload        Upload[]
+}
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  DEACTIVATED
 }
 
 enum UserRole {
   ADMIN
   VENDOR
+}
+
+enum Status {
+  INREVIEW
+  PENDING
+  ONGOING
+  AWARDED
+  DELIVERED
+  DECLINED
+  ACTIVE
+  APPROVED
+  INACTIVE
 }

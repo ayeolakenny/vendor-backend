@@ -22,7 +22,7 @@ export class VendorController {
   constructor(private readonly vendorService: VendorService) {}
 
   @Post('register')
-  @UseInterceptors(FilesInterceptor('uploads'))
+  @UseInterceptors(FilesInterceptor('upload'))
   async registerVendor(
     @Body() input: RegisterVendorDto,
     @Res() res: Response,
@@ -47,5 +47,19 @@ export class VendorController {
   async approveVendor(@Body() input: VendorIdDto, @Res() res: Response) {
     await this.vendorService.approveVendor(input);
     return res.status(200).json({ message: 'Vendor approved' });
+  }
+
+  @Auth([UserRole.ADMIN])
+  @Post('decline')
+  async declineVendor(@Body() input: VendorIdDto, @Res() res: Response) {
+    await this.vendorService.declineVendor(input);
+    return res.status(200).json({ message: 'Vendor declined' });
+  }
+
+  @Auth([UserRole.ADMIN])
+  @Post('deactivate')
+  async deleteVendor(@Body() input: VendorIdDto, @Res() res: Response) {
+    await this.vendorService.deactivateVendor(input);
+    return res.status(200).json({ message: 'Vendor deactivated' });
   }
 }

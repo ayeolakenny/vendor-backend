@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { PrismaService } from 'src/prisma.service';
 import { AuthUser } from 'prisma/schema';
-import { UserRole } from '@prisma/client';
+import { UserRole, VendorStatus } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -58,9 +58,10 @@ export class AuthService {
       email: user.email,
       role: user.role,
       sub: user.id,
+      vendorId: user.role === UserRole.VENDOR && user.vendor.id,
     };
 
-    if (user.vendor && !user.vendor.approved) {
+    if (user.vendor && user.vendor.status !== VendorStatus.APPROVED) {
       throw new UnauthorizedException('Account not approved');
     }
 

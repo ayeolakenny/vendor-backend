@@ -14,6 +14,8 @@ import { generateToken } from 'src/utils/generateToken';
 import { daysToUnix, unixToDaysLeft } from 'src/utils/date';
 import { MailService } from '../mail/mail.service';
 import { MAIL_MESSAGE, MAIL_SUBJECT } from '../mail/mail.contants';
+import { VendorStatus } from '@prisma/client';
+import { AuthPayload } from 'src/constants/types';
 
 @Injectable()
 export class VendorService {
@@ -37,13 +39,13 @@ export class VendorService {
       },
     });
 
-    // await this.mailService.sendMail({
-    //   to: email,
-    //   subject: MAIL_SUBJECT.VENDOR_INVITATION,
-    //   html: MAIL_MESSAGE.VENDOR_INVITATION(
-    //     `${process.env.CLIENT_DEPLOYED_URL}/registration?token=${inviteToken}`,
-    //   ),
-    // });
+    await this.mailService.sendMail({
+      to: email,
+      subject: MAIL_SUBJECT.VENDOR_INVITATION,
+      html: MAIL_MESSAGE.VENDOR_INVITATION(
+        `${process.env.CLIENT_DEPLOYED_URL}/registration?token=${inviteToken}`,
+      ),
+    });
 
     return true;
   }
@@ -118,17 +120,60 @@ export class VendorService {
       });
     }
 
-    // await this.__deleteVendorInvite(businessEmail, inviteToken);
+    await this.__deleteVendorInvite(businessEmail, inviteToken);
 
     return true;
   }
 
   async approveVendor(input: VendorIdDto) {
     const { id } = input;
+
+    const vendor = await this.__findVendorById(id);
+
+    if (vendor.status === VendorStatus.APPROVED) {
+      throw new ConflictException('Vendor is already approved.');
+    }
+
     return await this.prisma.vendor.update({
       where: { id },
-      data: { approved: true },
+      data: { status: VendorStatus.APPROVED },
     });
+  }
+
+  async declineVendor(input: VendorIdDto) {
+    const { id } = input;
+    const vendor = await this.__findVendorById(id);
+
+    if (vendor.status === VendorStatus.DECLINED) {
+      throw new ConflictException('Vendor is already declined.');
+    }
+
+    return await this.prisma.vendor.update({
+      where: { id },
+      data: { status: VendorStatus.DECLINED },
+    });
+  }
+
+  async deactivateVendor(input: VendorIdDto) {
+    const { id } = input;
+    const vendor = await this.__findVendorById(id);
+
+    if (vendor.status === VendorStatus.DEACTIVATED) {
+      throw new ConflictException('Vendor is already inactive.');
+    }
+
+    return await this.prisma.vendor.update({
+      where: { id },
+      data: { status: VendorStatus.DEACTIVATED },
+    });
+  }
+
+  // HELPERS
+
+  async __findVendorById(id: number) {
+    const vendor = await this.prisma.vendor.findUnique({ where: { id } });
+    if (!vendor) throw new BadRequestException('Vendor does not exist.');
+    return vendor;
   }
 
   async __checkIfVendorExists(email: string) {

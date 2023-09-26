@@ -65,7 +65,6 @@ export class RegisterVendorDto {
   @IsString()
   readonly inviteToken: string;
 }
-
 export class VendorIdDto {
   @IsNotEmpty()
   @IsNumber()
