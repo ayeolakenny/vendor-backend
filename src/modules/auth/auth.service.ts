@@ -65,6 +65,8 @@ export class AuthService {
       throw new UnauthorizedException('Account not approved');
     }
 
+    delete user.vendor;
+
     return {
       access_token: this.jwtService.sign(payload),
       user,

@@ -30,6 +30,6 @@ export class AuthController {
   @Auth()
   @Get('user')
   getAuthUser(@Request() req) {
-    return this.authService.getAuthUser(req.user.userId);
+    return this.authService.getAuthUser(req.user.sub);
   }
 }
