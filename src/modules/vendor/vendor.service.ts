@@ -15,7 +15,6 @@ import { daysToUnix, unixToDaysLeft } from 'src/utils/date';
 import { MailService } from '../mail/mail.service';
 import { MAIL_MESSAGE, MAIL_SUBJECT } from '../mail/mail.contants';
 import { VendorStatus } from '@prisma/client';
-import { AuthPayload } from 'src/constants/types';
 
 @Injectable()
 export class VendorService {
@@ -71,6 +70,8 @@ export class VendorService {
 
     await this.__checkIfInviteTokenIsValid(inviteToken, businessEmail);
     await this.__checkEmailTaken(email, businessEmail);
+    await this.__checkPhonenumberTaken(businessPhoneNumber);
+    await this.__checkPhonenumberTaken(phoneNumber);
 
     const passwordHash = await argon2.hash(lastName);
 
@@ -223,6 +224,20 @@ export class VendorService {
       where: { email: vendorEmail },
     });
     if (vendorEmailTaken) throw new ConflictException('email has been used');
+  }
+
+  async __checkPhonenumberTaken(phoneNumber: string) {
+    const phoneNumberTaken = await this.prisma.user.findFirst({
+      where: { phoneNumber },
+    });
+    if (phoneNumberTaken)
+      throw new ConflictException('phone number has been used');
+
+    const vendorPhoneNumberTaken = await this.prisma.vendor.findFirst({
+      where: { phoneNumber },
+    });
+    if (vendorPhoneNumberTaken)
+      throw new ConflictException('phone number has been used');
   }
 
   // async __checkIfInvitationExists(email: string) {

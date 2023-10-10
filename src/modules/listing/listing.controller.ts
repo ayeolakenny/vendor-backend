@@ -21,7 +21,7 @@ import {
 } from './dto/listing.request';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Auth } from '../auth/decorators/auth.decorator';
-import { ListingReport, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @Controller('listing')
 export class ListingController {

@@ -60,6 +60,10 @@ export class RegisterVendorDto {
   @IsPhoneNumber('NG', { message: 'Invalid phone number' })
   readonly phoneNumber: string;
 
+  @IsOptional()
+  @IsString()
+  readonly taxIdentificationNumber: string;
+
   // Invite Token
   @IsNotEmpty()
   @IsString()

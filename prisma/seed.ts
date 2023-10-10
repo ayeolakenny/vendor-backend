@@ -38,6 +38,7 @@ async function main() {
     },
   });
   console.log(admin);
+
   const categories = await prisma.category.createMany({
     data: categoriesData,
   });
