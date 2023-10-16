@@ -79,6 +79,7 @@ model Upload {
 model Category {
   id           Int           @id @default(autoincrement())
   name         String
+  description  String?
   listing      Listing[]
   applications Application[]
 }

@@ -1,9 +1,12 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateCategoryDto {
   @IsNotEmpty()
   @IsString()
   readonly name: string;
+
+  @IsOptional()
+  readonly description: string;
 }
 
 export class UpdateCategoryDto {
@@ -14,6 +17,9 @@ export class UpdateCategoryDto {
   @IsNotEmpty()
   @IsString()
   readonly name: string;
+
+  @IsOptional()
+  readonly description: string;
 }
 
 export class CategoryIdDto {

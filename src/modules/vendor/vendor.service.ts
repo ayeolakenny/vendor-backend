@@ -38,13 +38,13 @@ export class VendorService {
       },
     });
 
-    await this.mailService.sendMail({
-      to: email,
-      subject: MAIL_SUBJECT.VENDOR_INVITATION,
-      html: MAIL_MESSAGE.VENDOR_INVITATION(
-        `${process.env.CLIENT_DEPLOYED_URL}/registration?token=${inviteToken}`,
-      ),
-    });
+    // await this.mailService.sendMail({
+    //   to: email,
+    //   subject: MAIL_SUBJECT.VENDOR_INVITATION,
+    //   html: MAIL_MESSAGE.VENDOR_INVITATION(
+    //     `${process.env.CLIENT_DEPLOYED_URL}/registration?token=${inviteToken}`,
+    //   ),
+    // });
 
     return true;
   }

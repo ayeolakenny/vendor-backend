@@ -15,11 +15,11 @@ export class CategoryService {
   constructor(private prisma: PrismaService) {}
 
   async createCategory(input: CreateCategoryDto) {
-    const { name } = input;
+    const { name, description } = input;
     await this.__checkIfSimilarCategoryExist(name);
 
     await this.prisma.category.create({
-      data: { name },
+      data: { name, description },
     });
 
     return true;
