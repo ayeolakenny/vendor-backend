@@ -126,6 +126,16 @@ export class VendorService {
     return true;
   }
 
+  async getVendors(){
+   const vendors =  await this.prisma.vendor.findMany({});
+   return vendors;
+  }
+
+  async getOneVendor(id: number){
+    const vendor = await this.prisma.vendor.findUnique({where: {id}});
+    return vendor;
+  }
+
   async approveVendor(input: VendorIdDto) {
     const { id } = input;
 

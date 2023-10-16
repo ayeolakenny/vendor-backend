@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, Put, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Post, Put, Res, Get, Param } from '@nestjs/common';
 import { Response } from 'express';
 import { CategoryService } from './category.service';
 import { Auth } from '../auth/decorators/auth.decorator';

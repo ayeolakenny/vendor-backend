@@ -5,6 +5,8 @@ import {
   Res,
   UploadedFiles,
   UseInterceptors,
+  Get,
+  Param
 } from '@nestjs/common';
 import { Response } from 'express';
 import { VendorService } from './vendor.service';
@@ -47,6 +49,17 @@ export class VendorController {
   async approveVendor(@Body() input: VendorIdDto, @Res() res: Response) {
     await this.vendorService.approveVendor(input);
     return res.status(200).json({ message: 'Vendor approved' });
+  }
+
+ 
+  @Get()
+  async getVendors(){
+   return await this.vendorService.getVendors();
+  }
+
+  @Get(':id')
+  async getOneVendor(@Param('id') id: string){
+    return await this.vendorService.getOneVendor(+id);
   }
 
   @Auth([UserRole.ADMIN])
