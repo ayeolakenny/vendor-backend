@@ -126,13 +126,18 @@ export class VendorService {
     return true;
   }
 
-  async getVendors(){
-   const vendors =  await this.prisma.vendor.findMany({});
-   return vendors;
+  async getVendors() {
+    const vendors = await this.prisma.vendor.findMany({
+      include: { user: true },
+    });
+    return vendors;
   }
 
-  async getOneVendor(id: number){
-    const vendor = await this.prisma.vendor.findUnique({where: {id}});
+  async getOneVendor(id: number) {
+    const vendor = await this.prisma.vendor.findUnique({
+      where: { id },
+      include: { user: true },
+    });
     return vendor;
   }
 

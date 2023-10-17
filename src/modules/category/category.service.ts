@@ -50,6 +50,16 @@ export class CategoryService {
     return true;
   }
 
+  async getCategories() {
+    return await this.prisma.category.findMany({});
+  }
+
+  async getOneCategory(id: number) {
+    return await this.prisma.category.findUnique({
+      where: { id },
+    });
+  }
+
   async __checkIfCategoryExist(id: number) {
     const category = await this.prisma.category.findUnique({
       where: {
