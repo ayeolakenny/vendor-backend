@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Post, Put, Res, Get, Param } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Post,
+  Put,
+  Res,
+  Get,
+  Param,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { CategoryService } from './category.service';
 import { Auth } from '../auth/decorators/auth.decorator';
@@ -12,6 +21,16 @@ import {
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
+
+  @Get()
+  async getCategories() {
+    return await this.categoryService.getCategories();
+  }
+
+  @Get(':id')
+  async getOneCategory(@Param('id') id: string) {
+    return await this.categoryService.getOneCategory(+id);
+  }
 
   @Auth([UserRole.ADMIN])
   @Post('create')
