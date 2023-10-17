@@ -35,7 +35,7 @@ export class ListingController {
   }
 
   @Auth([UserRole.ADMIN])
-  @Post('create')
+  @Post('')
   @UseInterceptors(FilesInterceptor('upload'))
   async createListing(
     @Body() input: CreateListingDto,

@@ -67,13 +67,7 @@ export class ListingService {
       include: {
         category: true,
         vendors: true,
-        upload: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-          },
-        },
+        applications: true,
       },
     });
   }
