@@ -33,7 +33,7 @@ export class CategoryController {
   }
 
   @Auth([UserRole.ADMIN])
-  @Post('create')
+  @Post('')
   async createCategory(@Body() input: CreateCategoryDto, @Res() res: Response) {
     await this.categoryService.createCategory(input);
     return res.status(201).json({ message: 'Category created' });
