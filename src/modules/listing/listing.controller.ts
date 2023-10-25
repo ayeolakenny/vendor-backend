@@ -28,8 +28,8 @@ export class ListingController {
   constructor(private readonly listingService: ListingService) {}
 
   @Auth()
-  @Get('')
-  async getListing(@Res() res: Response) {
+  @Get()
+  async getListing() {
     return await this.listingService.getListings();
   }
 
