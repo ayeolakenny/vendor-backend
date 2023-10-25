@@ -82,6 +82,8 @@ model Category {
   description  String?
   listing      Listing[]
   applications Application[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Listing {
