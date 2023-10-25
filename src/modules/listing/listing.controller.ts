@@ -30,8 +30,7 @@ export class ListingController {
   @Auth()
   @Get('')
   async getListing(@Res() res: Response) {
-    const data = await this.listingService.getListings();
-    return res.status(200).json({ data });
+    return await this.listingService.getListings();
   }
 
   @Auth([UserRole.ADMIN])
