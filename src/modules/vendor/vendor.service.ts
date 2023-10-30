@@ -2,11 +2,13 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   RegisterVendorDto,
   SendInviteLinkDto,
   VendorIdDto,
+  statusUpdateDto,
 } from './dto/vendor.request.';
 import { PrismaService } from 'src/prisma.service';
 import * as argon2 from 'argon2';
@@ -21,7 +23,7 @@ export class VendorService {
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
-  ) {}
+  ) { }
 
   async sendVendorInviteLink(input: SendInviteLinkDto) {
     const { email } = input;
@@ -141,50 +143,78 @@ export class VendorService {
     return vendor;
   }
 
-  async approveVendor(input: VendorIdDto) {
-    const { id } = input;
+  /*   async approveVendor(input: VendorIdDto) {
+      const { id } = input;
+  
+      const vendor = await this.__findVendorById(id);
+  
+      if (vendor.status === VendorStatus.APPROVED) {
+        throw new ConflictException('Vendor is already approved.');
+      }
+  
+      return await this.prisma.vendor.update({
+        where: { id },
+        data: { status: VendorStatus.APPROVED },
+      });
+    }
+  
+    async declineVendor(input: VendorIdDto) {
+      const { id } = input;
+      const vendor = await this.__findVendorById(id);
+  
+      if (vendor.status === VendorStatus.DECLINED) {
+        throw new ConflictException('Vendor is already declined.');
+      }
+  
+      return await this.prisma.vendor.update({
+        where: { id },
+        data: { status: VendorStatus.DECLINED },
+      });
+    }
+  
+    async deactivateVendor(input: VendorIdDto) {
+      const { id } = input;
+      const vendor = await this.__findVendorById(id);
+  
+      if (vendor.status === VendorStatus.DEACTIVATED) {
+        throw new ConflictException('Vendor is already inactive.');
+      }
+  
+      return await this.prisma.vendor.update({
+        where: { id },
+        data: { status: VendorStatus.DEACTIVATED },
+      });
+    } */
+
+  async reviewVendorRegistration(input: statusUpdateDto): Promise<any> {
+    const { id, status } = input;
+
+    const statusCheck = ["PENDING", "APPROVED", "DECLINED", "DEACTIVATED"]
 
     const vendor = await this.__findVendorById(id);
 
-    if (vendor.status === VendorStatus.APPROVED) {
-      throw new ConflictException('Vendor is already approved.');
+    // Check if the vendor is already approved or declined
+    // Check if the vendor is already approved or declined
+    if (vendor.status === status) {
+      if (status === 'APPROVED') {
+        throw new ConflictException('Vendor is already approved.');
+      } else if (status === 'DECLINED') {
+        throw new ConflictException('Vendor is already declined.');
+      }
+    }
+
+    // Validate the incoming status
+    if (!statusCheck.includes(status)) {
+      throw new BadRequestException('Invalid status provided.');
     }
 
     return await this.prisma.vendor.update({
       where: { id },
-      data: { status: VendorStatus.APPROVED },
+      data: { status: status as VendorStatus },
     });
+
   }
-
-  async declineVendor(input: VendorIdDto) {
-    const { id } = input;
-    const vendor = await this.__findVendorById(id);
-
-    if (vendor.status === VendorStatus.DECLINED) {
-      throw new ConflictException('Vendor is already declined.');
-    }
-
-    return await this.prisma.vendor.update({
-      where: { id },
-      data: { status: VendorStatus.DECLINED },
-    });
-  }
-
-  async deactivateVendor(input: VendorIdDto) {
-    const { id } = input;
-    const vendor = await this.__findVendorById(id);
-
-    if (vendor.status === VendorStatus.DEACTIVATED) {
-      throw new ConflictException('Vendor is already inactive.');
-    }
-
-    return await this.prisma.vendor.update({
-      where: { id },
-      data: { status: VendorStatus.DEACTIVATED },
-    });
-  }
-
-  // HELPERS
+  // HELPERS/
 
   async __findVendorById(id: number) {
     const vendor = await this.prisma.vendor.findUnique({ where: { id } });
