@@ -64,7 +64,7 @@ export class ListingController {
     return res.status(200).json({ message: 'Listing Deleted' });
   }
 
-  // @Auth([UserRole.VENDOR])
+  @Auth([UserRole.VENDOR])
   @Post('apply')
   @UseInterceptors(FilesInterceptor('upload'))
   async listingApplication(

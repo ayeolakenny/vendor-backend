@@ -79,7 +79,7 @@ export class VendorIdDto {
 export class statusUpdateDto {
   @IsNotEmpty()
   @IsNumber()
-  readonly id: number;
+  readonly vendorId: number;
 
   @IsNotEmpty()
   readonly status: Status

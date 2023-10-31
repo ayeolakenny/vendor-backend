@@ -2,14 +2,12 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import {
   RegisterVendorDto,
   SendInviteLinkDto,
-  VendorIdDto,
   statusUpdateDto,
-} from './dto/vendor.request.';
+} from './dto/vendor.request';
 import { PrismaService } from 'src/prisma.service';
 import * as argon2 from 'argon2';
 import { generateToken } from 'src/utils/generateToken';
@@ -187,11 +185,11 @@ export class VendorService {
     } */
 
   async reviewVendorRegistration(input: statusUpdateDto): Promise<any> {
-    const { id, status } = input;
+    const {  vendorId, status } = input;
 
     const statusCheck = ["PENDING", "APPROVED", "DECLINED", "DEACTIVATED"]
 
-    const vendor = await this.__findVendorById(id);
+    const vendor = await this.__findVendorById(vendorId);
 
     // Check if the vendor is already approved or declined
     // Check if the vendor is already approved or declined
@@ -209,7 +207,7 @@ export class VendorService {
     }
 
     return await this.prisma.vendor.update({
-      where: { id },
+      where: { id: vendorId },
       data: { status: status as VendorStatus },
     });
 
