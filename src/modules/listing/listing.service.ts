@@ -16,7 +16,7 @@ import { AuthPayload } from 'src/constants/types';
 
 @Injectable()
 export class ListingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async createListing(input: CreateListingDto, uploads: Express.Multer.File[]) {
     const { categoryId, description, name, vendors } = input;
@@ -24,22 +24,22 @@ export class ListingService {
     const newListing =
       vendors && vendors.length > 0
         ? await this.prisma.listing.create({
-            data: {
-              name,
-              description,
-              category: { connect: { id: +categoryId } },
-              vendors: {
-                connect: vendors.map((vendorId) => ({ id: +vendorId })),
-              },
+          data: {
+            name,
+            description,
+            category: { connect: { id: +categoryId } },
+            vendors: {
+              connect: vendors.map((vendorId) => ({ id: +vendorId })),
             },
-          })
+          },
+        })
         : await this.prisma.listing.create({
-            data: {
-              name,
-              description,
-              category: { connect: { id: +categoryId } },
-            },
-          });
+          data: {
+            name,
+            description,
+            category: { connect: { id: +categoryId } },
+          },
+        });
 
     if (uploads && newListing) {
       const listingUploads = [];
@@ -161,42 +161,54 @@ export class ListingService {
     return true;
   }
 
+  /**
+   * Create a new application for a vendor's listing and associate uploads.
+   *
+   * @param {ListingApplicationDto} input - The input data for creating the application.
+   * @param {AuthPayload} user - The authenticated user's information.
+   * @param {Express.Multer.File[]} uploads - An array of uploaded files to associate with the application.
+   * @returns {Promise<boolean>} - A Promise that resolves to `true` on success.
+   * @throws {Error} - Throws an error if the application submission fails.
+   */
   async listingApplication(
     input: ListingApplicationDto,
     user: AuthPayload,
     uploads: Express.Multer.File[],
-  ) {
-    const vendorId = user.vendorId;
-    const { listingId, comment } = input;
-    await this.__checkIfListingExist(+listingId);
+  ): Promise<any> {
+    try {
+      const vendorId = user.vendorId;
+      const { listingId, comment } = input;
+      await this.__checkIfListingExist(+listingId);
 
-    const application = await this.prisma.application.create({
-      data: {
-        listing: { connect: { id: +listingId } },
-        vendor: { connect: { id: +vendorId } },
-        comment,
-      },
-    });
+      const application = await this.prisma.application.create({
+        data: {
+          listing: { connect: { id: +listingId } },
+          vendor: { connect: { id: +vendorId } },
+          comment,
+        },
+      });
 
-    if (uploads && application) {
-      const applicationUploads = [];
+      if (uploads && application) {
+        const applicationUploads = [];
 
-      uploads.forEach(async (upload) => {
-        applicationUploads.push({
-          name: upload.originalname,
-          size: upload.size,
-          type: upload.mimetype,
-          bytes: upload.buffer,
-          applicationId: application.id,
+        uploads.forEach(async (upload) => {
+          applicationUploads.push({
+            name: upload.originalname,
+            size: upload.size,
+            type: upload.mimetype,
+            bytes: upload.buffer,
+            applicationId: application.id,
+          });
         });
-      });
 
-      await this.prisma.upload.createMany({
-        data: applicationUploads,
-      });
+        await this.prisma.upload.createMany({
+          data: applicationUploads,
+        });
+      }
+      return true;
+    } catch (error) {
+      throw new BadRequestException(error.message)
     }
-
-    return true;
   }
 
   async listingReport(
