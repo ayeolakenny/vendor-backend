@@ -25,7 +25,7 @@ import { UserRole } from '@prisma/client';
 
 @Controller('listing')
 export class ListingController {
-  constructor(private readonly listingService: ListingService) {}
+  constructor(private readonly listingService: ListingService) { }
 
   @Auth()
   @Get()

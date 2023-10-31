@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   Get,
   Param,
+  Put,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { VendorService } from './vendor.service';
@@ -14,14 +15,15 @@ import {
   RegisterVendorDto,
   SendInviteLinkDto,
   VendorIdDto,
-} from './dto/vendor.request.';
+  statusUpdateDto,
+} from './dto/vendor.request';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { UserRole } from '@prisma/client';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('vendor')
 export class VendorController {
-  constructor(private readonly vendorService: VendorService) {}
+  constructor(private readonly vendorService: VendorService) { }
 
   @Get()
   async getVendors() {
@@ -54,24 +56,19 @@ export class VendorController {
     return res.status(200).json({ message: 'Invite sent' });
   }
 
+  /**
+   * Update the registration status of a vendor.
+   *
+   * @param {statusUpdateDto} input - The data for updating the vendor's registration status.
+   * @param {Response} res - Express response object.
+   * @returns {Promise<any>} - A promise that resolves with a JSON response indicating the result of the operation.
+   *
+   * @throws {UnauthorizedException} - If the user does not have the required role (ADMIN) to perform this action.
+   */
   @Auth([UserRole.ADMIN])
-  @Post('approve')
-  async approveVendor(@Body() input: VendorIdDto, @Res() res: Response) {
-    await this.vendorService.approveVendor(input);
-    return res.status(200).json({ message: 'Vendor approved' });
-  }
-
-  @Auth([UserRole.ADMIN])
-  @Post('decline')
-  async declineVendor(@Body() input: VendorIdDto, @Res() res: Response) {
-    await this.vendorService.declineVendor(input);
-    return res.status(200).json({ message: 'Vendor declined' });
-  }
-
-  @Auth([UserRole.ADMIN])
-  @Post('deactivate')
-  async deleteVendor(@Body() input: VendorIdDto, @Res() res: Response) {
-    await this.vendorService.deactivateVendor(input);
-    return res.status(200).json({ message: 'Vendor deactivated' });
+  @Put("review")
+  async reviewRegistration(@Body() input: statusUpdateDto, @Res() res: Response): Promise<any> {
+    await this.vendorService.reviewVendorRegistration(input)
+    return res.status(200).json({ message: `Vendor status updated to ${input.status}` })
   }
 }

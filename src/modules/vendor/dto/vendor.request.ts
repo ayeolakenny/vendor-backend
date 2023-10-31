@@ -1,3 +1,4 @@
+import { Status } from '@prisma/client';
 import {
   IsEmail,
   IsNotEmpty,
@@ -73,4 +74,13 @@ export class VendorIdDto {
   @IsNotEmpty()
   @IsNumber()
   readonly id: number;
+}
+
+export class statusUpdateDto {
+  @IsNotEmpty()
+  @IsNumber()
+  readonly vendorId: number;
+
+  @IsNotEmpty()
+  readonly status: Status
 }
