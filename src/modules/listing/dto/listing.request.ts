@@ -1,6 +1,5 @@
 import {
   IsArray,
-  IsDate,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -62,6 +61,31 @@ export class ListingApplicationDto {
   @IsNotEmpty()
   @IsString()
   readonly comment: string;
+}
+
+// Listing Application Review DTO - To handle both Decline and Award
+export class ListingApplicationReviewDto {
+  @IsNotEmpty()
+  @IsString()
+  readonly status: string
+
+  @IsNotEmpty()
+  @IsString()
+  readonly listingId: string
+
+  @IsNotEmpty()
+  @IsString()
+  readonly applicationId: string
+
+  @IsNotEmpty()
+  @IsString()
+  readonly vendorId: string
+
+  @IsOptional()
+  readonly deliveryDate: string
+
+  @IsOptional()
+  readonly description: string
 }
 
 export class ListingReportUpdateDto {
