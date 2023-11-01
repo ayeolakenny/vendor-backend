@@ -1,12 +1,14 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import {
   CreateListingDto,
   ListingApplicationDto,
+  ListingApplicationReviewDto,
   ListingIdDto,
   ListingReportUpdateDto,
   UpdateListingDto,
@@ -176,9 +178,12 @@ export class ListingService {
     uploads: Express.Multer.File[],
   ): Promise<any> {
     try {
+      // const user = { vendorId: "1" }
+
       const vendorId = user.vendorId;
       const { listingId, comment } = input;
       await this.__checkIfListingExist(+listingId);
+
 
       const application = await this.prisma.application.create({
         data: {
@@ -206,6 +211,64 @@ export class ListingService {
         });
       }
       return true;
+    } catch (error) {
+      throw new BadRequestException(error.message)
+    }
+  }
+
+  async listingApplicationAward(input: ListingApplicationReviewDto, uploads: Express.Multer.File[]) {
+    try {
+      const { status, listingId, applicationId, vendorId } = input
+
+      // Check if the Listing application exists
+      const listingApplication = await this.__findListingApplication(+applicationId, +vendorId)
+      if (!listingApplication) {
+        throw new NotFoundException(`Application with id ${applicationId} not found.`);
+      }
+
+      // Check if the listing exists
+      const listing = await this.__checkIfListingExist(+listingId)
+      if (!listing) {
+        throw new NotFoundException(`Listing with the id ${listingId} not found.`)
+      }
+
+      // If listing is been awarded before proceeding
+      if (listing.status === "AWARDED") {
+        throw new Error('Job already awarded.');
+      }
+
+      // Award OR Decline the current listing application
+      if (status === "DECLINED") {
+        await this.prisma.application.update({
+          where: { id: +applicationId }, data: {
+            status: Status.DECLINED
+          }
+        })
+        return { message: "Listing application declined!" }
+        // TODO: send the vendor an email
+      }
+
+      await this.prisma.application.update({
+        where: { id: +applicationId },
+        data: {
+          status: Status.AWARDED
+        }
+      })
+
+      // Update the status of the listing if awarded
+      await this.prisma.listing.update({
+        where: { id: +listingId },
+        data: {
+          status: Status.AWARDED
+        }
+      })
+
+      // TO DO: handle uploads
+
+      return {
+        message: "Listing awarded successfully!"
+      }
+
     } catch (error) {
       throw new BadRequestException(error.message)
     }
@@ -284,4 +347,18 @@ export class ListingService {
 
     return listing;
   }
+
+  private async __findListingApplication(applicationId: number, vendorId: number): Promise<any> {
+    try {
+      return await this.prisma.application.findFirst({
+        where: {
+          AND: [{ id: applicationId }, { vendorId }]
+        }
+      })
+    } catch (error) {
+      console.log(error.message)
+      throw new InternalServerErrorException("Error finding listing")
+    }
+  }
+
 }

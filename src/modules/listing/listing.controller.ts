@@ -15,6 +15,7 @@ import { ListingService } from './listing.service';
 import {
   CreateListingDto,
   ListingApplicationDto,
+  ListingApplicationReviewDto,
   ListingIdDto,
   ListingReportUpdateDto,
   UpdateListingDto,
@@ -64,7 +65,7 @@ export class ListingController {
     return res.status(200).json({ message: 'Listing Deleted' });
   }
 
-  // @Auth([UserRole.VENDOR])
+  @Auth([UserRole.VENDOR])
   @Post('apply')
   @UseInterceptors(FilesInterceptor('upload'))
   async listingApplication(
@@ -75,6 +76,14 @@ export class ListingController {
   ) {
     await this.listingService.listingApplication(input, req.user, uploads);
     return res.status(200).json({ message: 'Application Submitted' });
+  }
+
+  // @Auth([UserRole.VENDOR])
+  @Put("award")
+  @UseInterceptors(FilesInterceptor('upload'))
+  async listingApplicationAward(@Body() input: ListingApplicationReviewDto,
+    @UploadedFiles() uploads: Array<Express.Multer.File>): Promise<any> {
+    return this.listingService.listingApplicationAward(input, uploads)
   }
 
   @Auth([UserRole.VENDOR])
