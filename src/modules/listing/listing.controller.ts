@@ -78,7 +78,7 @@ export class ListingController {
     return res.status(200).json({ message: 'Application Submitted' });
   }
 
-  // @Auth([UserRole.VENDOR])
+  @Auth([UserRole.ADMIN])
   @Put("award")
   @UseInterceptors(FilesInterceptor('upload'))
   async listingApplicationAward(@Body() input: ListingApplicationReviewDto,

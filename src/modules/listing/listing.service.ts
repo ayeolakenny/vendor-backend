@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -18,7 +19,7 @@ import { AuthPayload } from 'src/constants/types';
 
 @Injectable()
 export class ListingService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async createListing(input: CreateListingDto, uploads: Express.Multer.File[]) {
     const { categoryId, description, name, vendors } = input;
@@ -26,22 +27,22 @@ export class ListingService {
     const newListing =
       vendors && vendors.length > 0
         ? await this.prisma.listing.create({
-          data: {
-            name,
-            description,
-            category: { connect: { id: +categoryId } },
-            vendors: {
-              connect: vendors.map((vendorId) => ({ id: +vendorId })),
+            data: {
+              name,
+              description,
+              category: { connect: { id: +categoryId } },
+              vendors: {
+                connect: vendors.map((vendorId) => ({ id: +vendorId })),
+              },
             },
-          },
-        })
+          })
         : await this.prisma.listing.create({
-          data: {
-            name,
-            description,
-            category: { connect: { id: +categoryId } },
-          },
-        });
+            data: {
+              name,
+              description,
+              category: { connect: { id: +categoryId } },
+            },
+          });
 
     if (uploads && newListing) {
       const listingUploads = [];
@@ -179,11 +180,24 @@ export class ListingService {
   ): Promise<any> {
     try {
       // const user = { vendorId: "1" }
-
       const vendorId = user.vendorId;
       const { listingId, comment } = input;
+
       await this.__checkIfListingExist(+listingId);
 
+      // Check if vendor is allowed to apply
+      await this.__checkIfVendorCanApply(+listingId, +vendorId);
+
+      // Check if vendor has applied before
+      const hasApplied = await this.prisma.application.findFirst({where: {
+        AND: [{
+          vendorId
+        }]
+      }})
+
+      if(hasApplied){
+        throw new ConflictException("You have previously applied for this job, kindly await a response")
+      }
 
       const application = await this.prisma.application.create({
         data: {
@@ -203,6 +217,7 @@ export class ListingService {
             type: upload.mimetype,
             bytes: upload.buffer,
             applicationId: application.id,
+            vendorId
           });
         });
 
@@ -212,65 +227,104 @@ export class ListingService {
       }
       return true;
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new BadRequestException(error.message);
     }
   }
 
-  async listingApplicationAward(input: ListingApplicationReviewDto, uploads: Express.Multer.File[]) {
+  async listingApplicationAward(
+    input: ListingApplicationReviewDto,
+    uploads: Express.Multer.File[],
+  ) {
     try {
-      const { status, listingId, applicationId, vendorId } = input
+      const { status, listingId, applicationId, vendorId, deliveryDate, description } = input;
 
       // Check if the Listing application exists
-      const listingApplication = await this.__findListingApplication(+applicationId, +vendorId)
+      const listingApplication = await this.__findListingApplication(
+        +applicationId,
+        +vendorId,
+      );
+
       if (!listingApplication) {
-        throw new NotFoundException(`Application with id ${applicationId} not found.`);
+        throw new NotFoundException(
+          `Application with id ${applicationId} not found.`,
+        );
       }
 
       // Check if the listing exists
-      const listing = await this.__checkIfListingExist(+listingId)
+      const listing = await this.__checkIfListingExist(+listingId);
       if (!listing) {
-        throw new NotFoundException(`Listing with the id ${listingId} not found.`)
+        throw new NotFoundException(
+          `Listing with the id ${listingId} not found.`,
+        );
       }
 
       // If listing is been awarded before proceeding
-      if (listing.status === "AWARDED") {
+      if (listing.status === 'AWARDED') {
         throw new Error('Job already awarded.');
       }
 
       // Award OR Decline the current listing application
-      if (status === "DECLINED") {
+      if (status === 'DECLINED') {
         await this.prisma.application.update({
-          where: { id: +applicationId }, data: {
-            status: Status.DECLINED
-          }
-        })
-        return { message: "Listing application declined!" }
-        // TODO: send the vendor an email
+          where: { id: +applicationId },
+          data: {
+            status: Status.DECLINED,
+          },
+        });
+        return { message: 'Listing application declined!' };
+        // TODO: send the vendor a declined email
       }
 
       await this.prisma.application.update({
         where: { id: +applicationId },
         data: {
-          status: Status.AWARDED
-        }
-      })
+          status: Status.AWARDED,
+        },
+      });
 
       // Update the status of the listing if awarded
       await this.prisma.listing.update({
         where: { id: +listingId },
         data: {
-          status: Status.AWARDED
+          status: Status.AWARDED,
+        },
+      });
+
+      const awardedListing = await this.prisma.awardedListing.create({
+        data: {
+          deliveryDate,
+          description,
+          application: {connect: {id: +applicationId}},
+          vendor: {connect: {id: +vendorId}}
         }
       })
+      // TODO: send the vendor an approved email
 
-      // TO DO: handle uploads
+      // Upload applicaiton files if there is
+      if (uploads) {
+        const applicationUploads = [];
 
-      return {
-        message: "Listing awarded successfully!"
+        uploads.forEach(async (upload) => {
+          applicationUploads.push({
+            name: upload.originalname,
+            size: upload.size,
+            type: upload.mimetype,
+            bytes: upload.buffer,
+            applicationId: +applicationId,
+            awardedListingId: status === Status.AWARDED ? awardedListing.id : null 
+          });
+        });
+
+        await this.prisma.upload.createMany({
+          data: applicationUploads
+        });
       }
 
+      return {
+        message: 'Listing awarded successfully!',
+      };
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -338,7 +392,7 @@ export class ListingService {
   }
 
   // Helpers
-  async __checkIfListingExist(listingId: number) {
+  private async __checkIfListingExist(listingId: number) {
     const listing = await this.prisma.listing.findUnique({
       where: { id: +listingId },
     });
@@ -348,17 +402,34 @@ export class ListingService {
     return listing;
   }
 
-  private async __findListingApplication(applicationId: number, vendorId: number): Promise<any> {
+  private async __findListingApplication(
+    applicationId: number,
+    vendorId: number,
+  ): Promise<any> {
     try {
       return await this.prisma.application.findFirst({
         where: {
-          AND: [{ id: applicationId }, { vendorId }]
-        }
-      })
+          AND: [{ id: applicationId }, { vendorId }],
+        },
+      });
     } catch (error) {
-      console.log(error.message)
-      throw new InternalServerErrorException("Error finding listing")
+      console.log(error.message);
+      throw new InternalServerErrorException('Error finding listing');
     }
   }
 
+  private async __checkIfVendorCanApply(listingId: number, vendorId: number) {
+    const listing = await this.prisma.listing.findUnique({
+      where: { id: +listingId },
+      include: { vendors: true },
+    });
+
+    const allowed = listing.vendors.find((v) => v.id === vendorId);
+
+    if (!allowed) {
+      throw new BadRequestException(
+        'You are not allowed to apply to this job.',
+      );
+    }
+  }
 }
