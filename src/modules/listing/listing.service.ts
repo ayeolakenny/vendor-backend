@@ -189,14 +189,20 @@ export class ListingService {
       await this.__checkIfVendorCanApply(+listingId, +vendorId);
 
       // Check if vendor has applied before
-      const hasApplied = await this.prisma.application.findFirst({where: {
-        AND: [{
-          vendorId
-        }]
-      }})
+      const hasApplied = await this.prisma.application.findFirst({
+        where: {
+          AND: [
+            {
+              vendorId,
+            },
+          ],
+        },
+      });
 
-      if(hasApplied){
-        throw new ConflictException("You have previously applied for this job, kindly await a response")
+      if (hasApplied) {
+        throw new ConflictException(
+          'You have previously applied for this job, kindly await a response',
+        );
       }
 
       const application = await this.prisma.application.create({
@@ -217,7 +223,7 @@ export class ListingService {
             type: upload.mimetype,
             bytes: upload.buffer,
             applicationId: application.id,
-            vendorId
+            vendorId,
           });
         });
 
@@ -231,12 +237,19 @@ export class ListingService {
     }
   }
 
-  async listingApplicationAward(
+  async listingApplicationReview(
     input: ListingApplicationReviewDto,
     uploads: Express.Multer.File[],
   ) {
     try {
-      const { status, listingId, applicationId, vendorId, deliveryDate, description } = input;
+      const {
+        status,
+        listingId,
+        applicationId,
+        vendorId,
+        deliveryDate,
+        description,
+      } = input;
 
       // Check if the Listing application exists
       const listingApplication = await this.__findListingApplication(
@@ -294,10 +307,10 @@ export class ListingService {
         data: {
           deliveryDate,
           description,
-          application: {connect: {id: +applicationId}},
-          vendor: {connect: {id: +vendorId}}
-        }
-      })
+          application: { connect: { id: +applicationId } },
+          vendor: { connect: { id: +vendorId } },
+        },
+      });
       // TODO: send the vendor an approved email
 
       // Upload applicaiton files if there is
@@ -311,12 +324,13 @@ export class ListingService {
             type: upload.mimetype,
             bytes: upload.buffer,
             applicationId: +applicationId,
-            awardedListingId: status === Status.AWARDED ? awardedListing.id : null 
+            awardedListingId:
+              status === Status.AWARDED ? awardedListing.id : null,
           });
         });
 
         await this.prisma.upload.createMany({
-          data: applicationUploads
+          data: applicationUploads,
         });
       }
 
