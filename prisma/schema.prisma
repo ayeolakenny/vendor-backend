@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -127,7 +128,7 @@ model AwardedListing {
   vendorId      Int?
   application   Application @relation(fields: [applicationId], references: [id])
   applicationId Int         @unique
-  createdAt     DateTime @default(now())
+  createdAt     DateTime    @default(now())
 }
 
 model ListingReport {
