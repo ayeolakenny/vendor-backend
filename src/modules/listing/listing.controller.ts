@@ -85,7 +85,7 @@ export class ListingController {
     @Body() input: ListingApplicationReviewDto,
     @UploadedFiles() uploads: Array<Express.Multer.File>,
   ): Promise<any> {
-    return this.listingService.listingApplicationAward(input, uploads);
+    return this.listingService.listingApplicationReview(input, uploads);
   }
 
   @Auth([UserRole.VENDOR])
