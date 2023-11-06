@@ -26,7 +26,7 @@ import { UserRole } from '@prisma/client';
 
 @Controller('listing')
 export class ListingController {
-  constructor(private readonly listingService: ListingService) { }
+  constructor(private readonly listingService: ListingService) {}
 
   @Auth()
   @Get()
@@ -79,11 +79,13 @@ export class ListingController {
   }
 
   @Auth([UserRole.ADMIN])
-  @Put("award")
+  @Put('review')
   @UseInterceptors(FilesInterceptor('upload'))
-  async listingApplicationAward(@Body() input: ListingApplicationReviewDto,
-    @UploadedFiles() uploads: Array<Express.Multer.File>): Promise<any> {
-    return this.listingService.listingApplicationAward(input, uploads)
+  async listingApplicationAward(
+    @Body() input: ListingApplicationReviewDto,
+    @UploadedFiles() uploads: Array<Express.Multer.File>,
+  ): Promise<any> {
+    return this.listingService.listingApplicationAward(input, uploads);
   }
 
   @Auth([UserRole.VENDOR])
