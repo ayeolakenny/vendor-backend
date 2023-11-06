@@ -81,7 +81,7 @@ export class ListingController {
   @Auth([UserRole.ADMIN])
   @Put('review')
   @UseInterceptors(FilesInterceptor('upload'))
-  async listingApplicationAward(
+  async listingApplicationReview(
     @Body() input: ListingApplicationReviewDto,
     @UploadedFiles() uploads: Array<Express.Multer.File>,
   ): Promise<any> {
