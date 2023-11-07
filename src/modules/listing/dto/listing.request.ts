@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -21,13 +22,12 @@ export class CreateListingDto {
   readonly description: string;
 
   @IsNotEmpty()
-  @IsString()
-  readonly categoryId: string;
+  @IsNumber()
+  readonly categoryId: number;
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  readonly vendors?: string[];
+  readonly vendors?: number[];
 }
 
 export class UpdateListingDto {
@@ -67,25 +67,25 @@ export class ListingApplicationDto {
 export class ListingApplicationReviewDto {
   @IsNotEmpty()
   @IsString()
-  readonly status: string
+  readonly status: string;
 
   @IsNotEmpty()
   @IsString()
-  readonly listingId: string
+  readonly listingId: string;
 
   @IsNotEmpty()
   @IsString()
-  readonly applicationId: string
+  readonly applicationId: string;
 
   @IsNotEmpty()
   @IsString()
-  readonly vendorId: string
+  readonly vendorId: string;
 
   @IsOptional()
-  readonly deliveryDate: string
+  readonly deliveryDate: string;
 
   @IsOptional()
-  readonly description: string
+  readonly description: string;
 }
 
 export class ListingReportUpdateDto {
