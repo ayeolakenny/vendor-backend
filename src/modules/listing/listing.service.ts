@@ -179,7 +179,6 @@ export class ListingService {
     uploads: Express.Multer.File[],
   ): Promise<any> {
     try {
-      // const user = { vendorId: "1" }
       const vendorId = user.vendorId;
       const { listingId, comment } = input;
 
@@ -191,11 +190,7 @@ export class ListingService {
       // Check if vendor has applied before
       const hasApplied = await this.prisma.application.findFirst({
         where: {
-          AND: [
-            {
-              vendorId,
-            },
-          ],
+          AND: [{ vendorId }, { listingId: +listingId }],
         },
       });
 
