@@ -405,8 +405,6 @@ export class ListingService {
     return true;
   }
 
-  async;
-
   // Helpers
   private async __checkIfListingExist(listingId: number) {
     const listing = await this.prisma.listing.findUnique({

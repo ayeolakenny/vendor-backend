@@ -22,8 +22,8 @@ export class CreateListingDto {
   readonly description: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  readonly categoryId: number;
+  @IsString()
+  readonly categoryId: string;
 
   @IsOptional()
   @IsArray()
