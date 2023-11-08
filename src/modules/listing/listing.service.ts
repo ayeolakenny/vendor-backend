@@ -19,7 +19,7 @@ import { AuthPayload } from 'src/constants/types';
 
 @Injectable()
 export class ListingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async createListing(input: CreateListingDto, uploads: Express.Multer.File[]) {
     const { categoryId, description, name, vendors } = input;
@@ -27,22 +27,22 @@ export class ListingService {
     const newListing =
       vendors && vendors.length > 0
         ? await this.prisma.listing.create({
-            data: {
-              name,
-              description,
-              category: { connect: { id: +categoryId } },
-              vendors: {
-                connect: vendors.map((vendorId) => ({ id: +vendorId })),
-              },
+          data: {
+            name,
+            description,
+            category: { connect: { id: +categoryId } },
+            vendors: {
+              connect: vendors.map((vendorId) => ({ id: +vendorId })),
             },
-          })
+          },
+        })
         : await this.prisma.listing.create({
-            data: {
-              name,
-              description,
-              category: { connect: { id: +categoryId } },
-            },
-          });
+          data: {
+            name,
+            description,
+            category: { connect: { id: +categoryId } },
+          },
+        });
 
     if (uploads && newListing) {
       const listingUploads = [];
@@ -162,6 +162,34 @@ export class ListingService {
 
     await this.prisma.listing.delete({ where: { id: +id } });
     return true;
+  }
+
+  /**
+   * Retrieve information about a single listing.
+   *
+   * @param {string} listingId - The unique identifier of the listing.
+   * @returns {Promise<Listing>} A promise that resolves to the listing information.
+   */
+  async singleListingInfo(listingId: string): Promise<any> {
+    // Convert the listingId to a number
+    const id = +listingId;
+
+    // Use Prisma to fetch the listing and its related data
+    const listing = await this.prisma.listing.findFirst({
+      where: { id },
+      include: {
+        category: true,
+        vendors: true,
+        applications: true,
+      },
+    });
+
+    if (!listing) {
+      // If the listing is not found, throw a 404 NotFoundException
+      throw new NotFoundException(`Listing with ID ${id} not found.`);
+    }
+
+    return listing;
   }
 
   /**

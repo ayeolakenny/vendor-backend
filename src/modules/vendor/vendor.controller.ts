@@ -71,4 +71,9 @@ export class VendorController {
     await this.vendorService.reviewVendorRegistration(input)
     return res.status(200).json({ message: `Vendor status updated to ${input.status}` })
   }
+
+  @Get("applications")
+  async allVendorApplications(): Promise<any> { 
+    
+  }
 }
