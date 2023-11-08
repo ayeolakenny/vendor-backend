@@ -72,8 +72,14 @@ export class VendorController {
     return res.status(200).json({ message: `Vendor status updated to ${input.status}` })
   }
 
-  @Get("applications")
-  async allVendorApplications(): Promise<any> { 
-    
+  /**
+ * Retrieve all applications by a single vendor.
+ * @param {string} vendorId - The unique identifier of the vendor.
+ * @returns {Promise<any>} A promise that resolves to the list of applications.
+ */
+  @Auth([UserRole.ADMIN])
+  @Get("applications/:vendorId")
+  async allVendorApplications(@Param("vendorId") vendorId: string): Promise<any> {
+    return await this.vendorService.getAllApplicationsBySingleVendor(vendorId)
   }
 }

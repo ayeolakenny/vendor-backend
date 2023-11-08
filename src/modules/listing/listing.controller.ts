@@ -71,7 +71,7 @@ export class ListingController {
   * @param {string} listingId - The unique identifier of the listing.
   * @returns {Promise<any>} A promise that resolves to the listing information.
   */
-  // @Auth([UserRole.ADMIN])
+  @Auth([UserRole.ADMIN])
   @Get(":listingId")
   async singleListingInfo(@Param("listingId") listingId: string): Promise<any> {
     return await this.listingService.singleListingInfo(listingId)

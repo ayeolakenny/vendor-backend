@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   RegisterVendorDto,
@@ -185,7 +186,7 @@ export class VendorService {
     } */
 
   async reviewVendorRegistration(input: statusUpdateDto): Promise<any> {
-    const {  vendorId, status } = input;
+    const { vendorId, status } = input;
 
     const statusCheck = ["PENDING", "APPROVED", "DECLINED", "DEACTIVATED"]
 
@@ -212,7 +213,21 @@ export class VendorService {
     });
 
   }
-  // HELPERS/
+
+  async getAllApplicationsBySingleVendor(id: string): Promise<any> {
+    const vendorId = +id
+    const applications = this.prisma.application.findMany({
+      where: { vendorId: +vendorId }, include: { upload: true }
+    })
+
+    if (!applications) {
+      throw new NotFoundException(`Listing with ID ${vendorId} not found.`);
+    }
+
+    return applications
+  }
+
+  // -----------------------HELPERS-----------------------------------/
 
   async __findVendorById(id: number) {
     const vendor = await this.prisma.vendor.findUnique({ where: { id } });
