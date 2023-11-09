@@ -81,7 +81,7 @@ export class VendorController {
    * @param {string} vendorId - The unique identifier of the vendor.
    * @returns {Promise<any>} A promise that resolves to the list of applications.
    */
-  @Auth([UserRole.ADMIN])
+  @Auth()
   @Get('applications/:vendorId')
   async allVendorApplications(
     @Param('vendorId') vendorId: string,
