@@ -70,7 +70,11 @@ export class ListingService {
       include: {
         category: true,
         vendors: true,
-        applications: true,
+        applications: {
+          include: {
+            vendor: true,
+          },
+        },
       },
     });
   }
