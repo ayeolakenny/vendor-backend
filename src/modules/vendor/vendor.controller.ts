@@ -14,7 +14,6 @@ import { VendorService } from './vendor.service';
 import {
   RegisterVendorDto,
   SendInviteLinkDto,
-  VendorIdDto,
   statusUpdateDto,
 } from './dto/vendor.request';
 import { Auth } from '../auth/decorators/auth.decorator';
@@ -23,7 +22,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('vendor')
 export class VendorController {
-  constructor(private readonly vendorService: VendorService) { }
+  constructor(private readonly vendorService: VendorService) {}
 
   @Get()
   async getVendors() {
@@ -66,9 +65,27 @@ export class VendorController {
    * @throws {UnauthorizedException} - If the user does not have the required role (ADMIN) to perform this action.
    */
   @Auth([UserRole.ADMIN])
-  @Put("review")
-  async reviewRegistration(@Body() input: statusUpdateDto, @Res() res: Response): Promise<any> {
-    await this.vendorService.reviewVendorRegistration(input)
-    return res.status(200).json({ message: `Vendor status updated to ${input.status}` })
+  @Put('review')
+  async reviewRegistration(
+    @Body() input: statusUpdateDto,
+    @Res() res: Response,
+  ): Promise<any> {
+    await this.vendorService.reviewVendorRegistration(input);
+    return res
+      .status(200)
+      .json({ message: `Vendor status updated to ${input.status}` });
+  }
+
+  /**
+   * Retrieve all applications by a single vendor.
+   * @param {string} vendorId - The unique identifier of the vendor.
+   * @returns {Promise<any>} A promise that resolves to the list of applications.
+   */
+  @Auth([UserRole.ADMIN])
+  @Get('applications/:vendorId')
+  async allVendorApplications(
+    @Param('vendorId') vendorId: string,
+  ): Promise<any> {
+    return await this.vendorService.getAllApplicationsBySingleVendor(vendorId);
   }
 }

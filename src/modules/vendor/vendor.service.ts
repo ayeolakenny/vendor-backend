@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   RegisterVendorDto,
@@ -21,7 +22,7 @@ export class VendorService {
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
-  ) { }
+  ) {}
 
   async sendVendorInviteLink(input: SendInviteLinkDto) {
     const { email } = input;
@@ -185,9 +186,9 @@ export class VendorService {
     } */
 
   async reviewVendorRegistration(input: statusUpdateDto): Promise<any> {
-    const {  vendorId, status } = input;
+    const { vendorId, status } = input;
 
-    const statusCheck = ["PENDING", "APPROVED", "DECLINED", "DEACTIVATED"]
+    const statusCheck = ['PENDING', 'APPROVED', 'DECLINED', 'DEACTIVATED'];
 
     const vendor = await this.__findVendorById(vendorId);
 
@@ -210,9 +211,24 @@ export class VendorService {
       where: { id: vendorId },
       data: { status: status as VendorStatus },
     });
-
   }
-  // HELPERS/
+
+  async getAllApplicationsBySingleVendor(id: string): Promise<any> {
+    const vendorId = +id;
+    console.log(vendorId);
+    const applications = this.prisma.application.findMany({
+      where: { vendorId: +vendorId },
+      include: { listing: true },
+    });
+
+    if (!applications) {
+      throw new NotFoundException(`Listing with ID ${vendorId} not found.`);
+    }
+
+    return applications;
+  }
+
+  // -----------------------HELPERS-----------------------------------/
 
   async __findVendorById(id: number) {
     const vendor = await this.prisma.vendor.findUnique({ where: { id } });

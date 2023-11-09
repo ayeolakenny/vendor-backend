@@ -9,6 +9,7 @@ import {
   Request,
   UploadedFiles,
   UseInterceptors,
+  Param,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ListingService } from './listing.service';
@@ -63,6 +64,17 @@ export class ListingController {
   async deleteListing(@Body() input: ListingIdDto, @Res() res: Response) {
     await this.listingService.deleteListing(input);
     return res.status(200).json({ message: 'Listing Deleted' });
+  }
+
+  /**
+   * Retrieve information about a single listing.
+   * @param {string} listingId - The unique identifier of the listing.
+   * @returns {Promise<any>} A promise that resolves to the listing information.
+   */
+  @Auth()
+  @Get(':listingId')
+  async singleListingInfo(@Param('listingId') listingId: string): Promise<any> {
+    return await this.listingService.singleListingInfo(listingId);
   }
 
   @Auth([UserRole.VENDOR])

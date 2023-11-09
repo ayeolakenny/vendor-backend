@@ -165,6 +165,34 @@ export class ListingService {
   }
 
   /**
+   * Retrieve information about a single listing.
+   *
+   * @param {string} listingId - The unique identifier of the listing.
+   * @returns {Promise<Listing>} A promise that resolves to the listing information.
+   */
+  async singleListingInfo(listingId: string): Promise<any> {
+    // Convert the listingId to a number
+    const id = +listingId;
+
+    // Use Prisma to fetch the listing and its related data
+    const listing = await this.prisma.listing.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        vendors: true,
+        applications: true,
+      },
+    });
+
+    if (!listing) {
+      // If the listing is not found, throw a 404 NotFoundException
+      throw new NotFoundException(`Listing with ID ${id} not found.`);
+    }
+
+    return listing;
+  }
+
+  /**
    * Create a new application for a vendor's listing and associate uploads.
    *
    * @param {ListingApplicationDto} input - The input data for creating the application.
