@@ -27,7 +27,7 @@ import { UserRole } from '@prisma/client';
 
 @Controller('listing')
 export class ListingController {
-  constructor(private readonly listingService: ListingService) { }
+  constructor(private readonly listingService: ListingService) {}
 
   @Auth()
   @Get()
@@ -67,14 +67,14 @@ export class ListingController {
   }
 
   /**
-  * Retrieve information about a single listing.
-  * @param {string} listingId - The unique identifier of the listing.
-  * @returns {Promise<any>} A promise that resolves to the listing information.
-  */
-  @Auth([UserRole.ADMIN])
-  @Get(":listingId")
-  async singleListingInfo(@Param("listingId") listingId: string): Promise<any> {
-    return await this.listingService.singleListingInfo(listingId)
+   * Retrieve information about a single listing.
+   * @param {string} listingId - The unique identifier of the listing.
+   * @returns {Promise<any>} A promise that resolves to the listing information.
+   */
+  @Auth()
+  @Get(':listingId')
+  async singleListingInfo(@Param('listingId') listingId: string): Promise<any> {
+    return await this.listingService.singleListingInfo(listingId);
   }
 
   @Auth([UserRole.VENDOR])

@@ -19,7 +19,7 @@ import { AuthPayload } from 'src/constants/types';
 
 @Injectable()
 export class ListingService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async createListing(input: CreateListingDto, uploads: Express.Multer.File[]) {
     const { categoryId, description, name, vendors } = input;
@@ -27,22 +27,22 @@ export class ListingService {
     const newListing =
       vendors && vendors.length > 0
         ? await this.prisma.listing.create({
-          data: {
-            name,
-            description,
-            category: { connect: { id: +categoryId } },
-            vendors: {
-              connect: vendors.map((vendorId) => ({ id: +vendorId })),
+            data: {
+              name,
+              description,
+              category: { connect: { id: +categoryId } },
+              vendors: {
+                connect: vendors.map((vendorId) => ({ id: +vendorId })),
+              },
             },
-          },
-        })
+          })
         : await this.prisma.listing.create({
-          data: {
-            name,
-            description,
-            category: { connect: { id: +categoryId } },
-          },
-        });
+            data: {
+              name,
+              description,
+              category: { connect: { id: +categoryId } },
+            },
+          });
 
     if (uploads && newListing) {
       const listingUploads = [];
@@ -175,7 +175,7 @@ export class ListingService {
     const id = +listingId;
 
     // Use Prisma to fetch the listing and its related data
-    const listing = await this.prisma.listing.findFirst({
+    const listing = await this.prisma.listing.findUnique({
       where: { id },
       include: {
         category: true,
