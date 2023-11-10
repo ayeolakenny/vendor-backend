@@ -88,6 +88,12 @@ export class ListingApplicationReviewDto {
   readonly description: string;
 }
 
+export class ListingStatusUpdate {
+  @IsNotEmpty()
+  @IsString()
+  readonly status: string;
+}
+
 export class ListingReportUpdateDto {
   @IsNotEmpty()
   @IsString()

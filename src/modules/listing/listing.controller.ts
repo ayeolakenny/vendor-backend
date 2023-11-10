@@ -19,6 +19,7 @@ import {
   ListingApplicationReviewDto,
   ListingIdDto,
   ListingReportUpdateDto,
+  ListingStatusUpdate,
   UpdateListingDto,
 } from './dto/listing.request';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -27,7 +28,7 @@ import { UserRole } from '@prisma/client';
 
 @Controller('listing')
 export class ListingController {
-  constructor(private readonly listingService: ListingService) {}
+  constructor(private readonly listingService: ListingService) { }
 
   @Auth()
   @Get()
@@ -71,10 +72,15 @@ export class ListingController {
    * @param {string} listingId - The unique identifier of the listing.
    * @returns {Promise<any>} A promise that resolves to the listing information.
    */
-  @Auth()
+  // @Auth()
   @Get(':listingId')
   async singleListingInfo(@Param('listingId') listingId: string): Promise<any> {
     return await this.listingService.singleListingInfo(listingId);
+  }
+
+  @Put("/:listingId/status")
+  async listingStatusUpdate(@Param("listingId") listingId: string, @Body() input: ListingStatusUpdate): Promise<any> {
+    return await this.listingService.listingStatusUpdate(listingId, input)
   }
 
   @Auth([UserRole.VENDOR])
