@@ -91,7 +91,7 @@ export class ListingController {
   }
 
   @Auth([UserRole.ADMIN])
-  @Put('review')
+  @Post('review')
   @UseInterceptors(FilesInterceptor('upload'))
   async listingApplicationReview(
     @Body() input: ListingApplicationReviewDto,
