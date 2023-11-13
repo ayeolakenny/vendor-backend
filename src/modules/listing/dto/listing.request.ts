@@ -1,5 +1,7 @@
+import { Status } from '@prisma/client';
 import {
   IsArray,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -66,8 +68,8 @@ export class ListingApplicationDto {
 // Listing Application Review DTO - To handle both Decline and Award
 export class ListingApplicationReviewDto {
   @IsNotEmpty()
-  @IsString()
-  readonly status: string;
+  @IsEnum(Status)
+  readonly status: Status;
 
   @IsNotEmpty()
   @IsString()
