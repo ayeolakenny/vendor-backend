@@ -19,6 +19,7 @@ import {
   ListingApplicationReviewDto,
   ListingIdDto,
   ListingReportUpdateDto,
+  ListingStatusUpdate,
   UpdateListingDto,
 } from './dto/listing.request';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -75,6 +76,15 @@ export class ListingController {
   @Get(':listingId')
   async singleListingInfo(@Param('listingId') listingId: string): Promise<any> {
     return await this.listingService.singleListingInfo(listingId);
+  }
+
+  @Auth([UserRole.ADMIN])
+  @Put('/:listingId/status')
+  async listingStatusUpdate(
+    @Param('listingId') listingId: string,
+    @Body() input: ListingStatusUpdate,
+  ): Promise<any> {
+    return await this.listingService.listingStatusUpdate(listingId, input);
   }
 
   @Auth([UserRole.VENDOR])

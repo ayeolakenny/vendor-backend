@@ -90,6 +90,12 @@ export class ListingApplicationReviewDto {
   readonly description: string;
 }
 
+export class ListingStatusUpdate {
+  @IsNotEmpty()
+  @IsEnum(Status)
+  readonly status: Status;
+}
+
 export class ListingReportUpdateDto {
   @IsNotEmpty()
   @IsString()
