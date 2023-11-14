@@ -1,5 +1,7 @@
+import { Status } from '@prisma/client';
 import {
   IsArray,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -90,8 +92,8 @@ export class ListingApplicationReviewDto {
 
 export class ListingStatusUpdate {
   @IsNotEmpty()
-  @IsString()
-  readonly status: string;
+  @IsEnum(Status)
+  readonly status: Status;
 }
 
 export class ListingReportUpdateDto {
