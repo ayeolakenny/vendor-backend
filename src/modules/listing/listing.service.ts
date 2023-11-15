@@ -12,6 +12,7 @@ import {
   ListingApplicationReviewDto,
   ListingIdDto,
   ListingReportUpdateDto,
+  ListingStatusUpdate,
   UpdateListingDto,
 } from './dto/listing.request';
 import { Listing, Status } from '@prisma/client';
@@ -19,7 +20,7 @@ import { AuthPayload } from 'src/constants/types';
 
 @Injectable()
 export class ListingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async createListing(input: CreateListingDto, uploads: Express.Multer.File[]) {
     const { categoryId, description, name, vendors } = input;
@@ -27,22 +28,22 @@ export class ListingService {
     const newListing =
       vendors && vendors.length > 0
         ? await this.prisma.listing.create({
-            data: {
-              name,
-              description,
-              category: { connect: { id: +categoryId } },
-              vendors: {
-                connect: vendors.map((vendorId) => ({ id: +vendorId })),
-              },
+          data: {
+            name,
+            description,
+            category: { connect: { id: +categoryId } },
+            vendors: {
+              connect: vendors.map((vendorId) => ({ id: +vendorId })),
             },
-          })
+          },
+        })
         : await this.prisma.listing.create({
-            data: {
-              name,
-              description,
-              category: { connect: { id: +categoryId } },
-            },
-          });
+          data: {
+            name,
+            description,
+            category: { connect: { id: +categoryId } },
+          },
+        });
 
     if (uploads && newListing) {
       const listingUploads = [];
@@ -366,6 +367,59 @@ export class ListingService {
       };
     } catch (error) {
       throw new BadRequestException(error.message);
+    }
+  }
+
+  // To update the status of a listing
+  async listingStatusUpdate(listingId: string, input: ListingStatusUpdate) {
+    const { status } = input
+    try {
+      // Check if the listing exists
+      const listing = await this.__checkIfListingExist(+listingId);
+      if (!listing) {
+        throw new NotFoundException(`Listing with ID ${listingId} does not exists.`)
+      }
+
+      // Check if the listing has been awarded or not
+      if (listing.status === "PENDING") {
+        throw new BadRequestException("This listing has not be awarded.")
+      }
+
+      // Check if the listing db status = the status sent
+      if (listing.status === status.toUpperCase()) {
+        throw new BadRequestException(`This listing is ${status}`)
+      }
+
+      // STATUS = DELIVERED
+      if (status.toUpperCase() === Status.DELIVERED) {
+        await this.prisma.listing.update({
+          where: { id: +listingId }, data: {
+            status: Status.DELIVERED
+          }
+        })
+        return {
+          message: `Listing status updated to ${status}!`,
+        };
+      }
+
+      // STATUS = ONGOING
+      if (status.toUpperCase() === Status.ONGOING) {
+        await this.prisma.listing.update({
+          where: { id: +listingId }, data: {
+            status: Status.ONGOING
+          }
+        })
+        return {
+          message: `Listing status updated to ${status}!`,
+        };
+      }
+
+      // Invalid status response
+      return {
+        message: `${status} - Invalid listing status.`,
+      };
+    } catch (err) {
+      return err.message
     }
   }
 
