@@ -94,7 +94,7 @@ model Listing {
   id           Int           @id @default(autoincrement())
   name         String
   description  String
-  status       Status        @default(PENDING)
+  status       Status        @default(OPEN)
   category     Category      @relation(fields: [categoryId], references: [id])
   categoryId   Int
   upload       Upload[]
@@ -156,6 +156,7 @@ enum UserRole {
 }
 
 enum Status {
+  OPEN
   INREVIEW
   PENDING
   ONGOING
