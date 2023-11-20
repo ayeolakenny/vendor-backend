@@ -42,9 +42,10 @@ export class ListingController {
   async createListing(
     @Body() input: CreateListingDto,
     @Res() res: Response,
+    @Request() req,
     @UploadedFiles() uploads: Array<Express.Multer.File>,
   ) {
-    await this.listingService.createListing(input, uploads);
+    await this.listingService.createListing(input, req.user, uploads);
     return res.status(201).json({ message: 'Listing Created' });
   }
 
@@ -54,9 +55,10 @@ export class ListingController {
   async updateListing(
     @Body() input: UpdateListingDto,
     @Res() res: Response,
+    @Request() req,
     @UploadedFiles() uploads: Array<Express.Multer.File>,
   ) {
-    await this.listingService.updateListing(input, uploads);
+    await this.listingService.updateListing(input, req.user, uploads);
     return res.status(201).json({ message: 'Listing Updated' });
   }
 
@@ -105,9 +107,14 @@ export class ListingController {
   @UseInterceptors(FilesInterceptor('upload'))
   async listingApplicationReview(
     @Body() input: ListingApplicationReviewDto,
+    @Request() req,
     @UploadedFiles() uploads: Array<Express.Multer.File>,
   ): Promise<any> {
-    return this.listingService.listingApplicationReview(input, uploads);
+    return this.listingService.listingApplicationReview(
+      input,
+      req.user,
+      uploads,
+    );
   }
 
   @Auth([UserRole.VENDOR])

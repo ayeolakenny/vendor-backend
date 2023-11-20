@@ -20,30 +20,34 @@ import { AuthPayload } from 'src/constants/types';
 
 @Injectable()
 export class ListingService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-  async createListing(input: CreateListingDto, uploads: Express.Multer.File[]) {
+  async createListing(
+    input: CreateListingDto,
+    user: AuthPayload,
+    uploads: Express.Multer.File[],
+  ) {
     const { categoryId, description, name, vendors } = input;
 
     const newListing =
       vendors && vendors.length > 0
         ? await this.prisma.listing.create({
-          data: {
-            name,
-            description,
-            category: { connect: { id: +categoryId } },
-            vendors: {
-              connect: vendors.map((vendorId) => ({ id: +vendorId })),
+            data: {
+              name,
+              description,
+              category: { connect: { id: +categoryId } },
+              vendors: {
+                connect: vendors.map((vendorId) => ({ id: +vendorId })),
+              },
             },
-          },
-        })
+          })
         : await this.prisma.listing.create({
-          data: {
-            name,
-            description,
-            category: { connect: { id: +categoryId } },
-          },
-        });
+            data: {
+              name,
+              description,
+              category: { connect: { id: +categoryId } },
+            },
+          });
 
     if (uploads && newListing) {
       const listingUploads = [];
@@ -55,6 +59,7 @@ export class ListingService {
           type: upload.mimetype,
           bytes: upload.buffer,
           listingId: newListing.id,
+          userId: user.sub,
         });
       });
 
@@ -71,6 +76,12 @@ export class ListingService {
       include: {
         category: true,
         vendors: true,
+        upload: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         applications: {
           include: {
             vendor: true,
@@ -80,7 +91,11 @@ export class ListingService {
     });
   }
 
-  async updateListing(input: UpdateListingDto, uploads: Express.Multer.File[]) {
+  async updateListing(
+    input: UpdateListingDto,
+    user: AuthPayload,
+    uploads: Express.Multer.File[],
+  ) {
     const { id, categoryId, description, name, vendors } = input;
 
     const listing = await this.prisma.listing.findUnique({
@@ -142,6 +157,7 @@ export class ListingService {
           type: upload.mimetype,
           bytes: upload.buffer,
           listingId: newListing.id,
+          userId: user.sub,
         });
       });
 
@@ -252,6 +268,7 @@ export class ListingService {
             bytes: upload.buffer,
             applicationId: application.id,
             vendorId,
+            userId: user.sub,
           });
         });
 
@@ -267,6 +284,7 @@ export class ListingService {
 
   async listingApplicationReview(
     input: ListingApplicationReviewDto,
+    user: AuthPayload,
     uploads: Express.Multer.File[],
   ) {
     try {
@@ -354,6 +372,7 @@ export class ListingService {
             applicationId: +applicationId,
             awardedListingId:
               status === Status.AWARDED ? awardedListing.id : null,
+            userId: user.sub,
           });
         });
 
@@ -372,31 +391,34 @@ export class ListingService {
 
   // To update the status of a listing
   async listingStatusUpdate(listingId: string, input: ListingStatusUpdate) {
-    const { status } = input
+    const { status } = input;
     try {
       // Check if the listing exists
       const listing = await this.__checkIfListingExist(+listingId);
       if (!listing) {
-        throw new NotFoundException(`Listing with ID ${listingId} does not exists.`)
+        throw new NotFoundException(
+          `Listing with ID ${listingId} does not exists.`,
+        );
       }
 
       // Check if the listing has been awarded or not
-      if (listing.status === "PENDING") {
-        throw new BadRequestException("This listing has not be awarded.")
+      if (listing.status === 'PENDING') {
+        throw new BadRequestException('This listing has not be awarded.');
       }
 
       // Check if the listing db status = the status sent
       if (listing.status === status.toUpperCase()) {
-        throw new BadRequestException(`This listing is ${status}`)
+        throw new BadRequestException(`This listing is ${status}`);
       }
 
       // STATUS = DELIVERED
       if (status.toUpperCase() === Status.DELIVERED) {
         await this.prisma.listing.update({
-          where: { id: +listingId }, data: {
-            status: Status.DELIVERED
-          }
-        })
+          where: { id: +listingId },
+          data: {
+            status: Status.DELIVERED,
+          },
+        });
         return {
           message: `Listing status updated to ${status}!`,
         };
@@ -405,10 +427,11 @@ export class ListingService {
       // STATUS = ONGOING
       if (status.toUpperCase() === Status.ONGOING) {
         await this.prisma.listing.update({
-          where: { id: +listingId }, data: {
-            status: Status.ONGOING
-          }
-        })
+          where: { id: +listingId },
+          data: {
+            status: Status.ONGOING,
+          },
+        });
         return {
           message: `Listing status updated to ${status}!`,
         };
@@ -419,7 +442,7 @@ export class ListingService {
         message: `${status} - Invalid listing status.`,
       };
     } catch (err) {
-      return err.message
+      return err.message;
     }
   }
 
@@ -475,6 +498,7 @@ export class ListingService {
           type: upload.mimetype,
           bytes: upload.buffer,
           listingReportId: newReport.id,
+          userId: user.sub,
         });
       });
 

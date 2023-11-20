@@ -114,6 +114,7 @@ export class VendorService {
           type: upload.mimetype,
           bytes: upload.buffer,
           vendorId: newUser.vendor.id,
+          userId: newUser.id,
         });
       });
 
@@ -129,7 +130,15 @@ export class VendorService {
 
   async getVendors() {
     const vendors = await this.prisma.vendor.findMany({
-      include: { user: true },
+      include: {
+        user: true,
+        upload: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
     return vendors;
   }

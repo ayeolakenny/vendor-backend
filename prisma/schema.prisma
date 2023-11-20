@@ -23,6 +23,7 @@ model User {
   updatedAt   DateTime  @updatedAt
   password    Password?
   vendor      Vendor?
+  upload      Upload[]
 }
 
 model Password {
@@ -79,6 +80,8 @@ model Upload {
   listingReportId  Int?
   awardedListing   AwardedListing? @relation(fields: [awardedListingId], references: [id])
   awardedListingId Int?
+  User             User?           @relation(fields: [userId], references: [id])
+  userId           Int?
 }
 
 model Category {
